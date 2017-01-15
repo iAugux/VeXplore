@@ -37,6 +37,7 @@ class HomePageViewController: UIViewController, UIScrollViewDelegate, Horizontal
     private var tabs = R.Array.AllTabsTitle
     private var currentTab: String!
     private var tabsVC = [HomePageTopicListViewController]()
+    private var currentIndex = 0
     
     override func loadView()
     {
@@ -79,7 +80,18 @@ class HomePageViewController: UIViewController, UIScrollViewDelegate, Horizontal
         contentScrollView.backgroundColor = .white
         setup()
     }
-    
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        super.viewWillTransition(to: size, with: coordinator)
+
+        guard UIDevice.current.userInterfaceIdiom == .pad else { return }
+
+        coordinator.animate(alongsideTransition: { (_) in
+            self.resetFrames()
+        }, completion: nil)
+    }
+
     @objc
     private func didLogin()
     {
@@ -155,7 +167,19 @@ class HomePageViewController: UIViewController, UIScrollViewDelegate, Horizontal
         tabsVC.removeAll()
         setupTabs()
     }
-    
+
+    private func resetFrames()
+    {
+        var offsetX: CGFloat = 0.0
+        tabsVC.forEach()
+            {
+                let frame = CGRect(x: offsetX, y: 0, width: contentScrollView.bounds.width, height: contentScrollView.bounds.height)
+                $0.view.frame = frame
+                offsetX += contentScrollView.bounds.width
+        }
+        showPage(at: currentIndex, animated: false)
+    }
+
     private func setupContentScrollViewAndShowPage(atIndex index: Int)
     {
         contentScrollView.contentSize = CGSize(width: CGFloat(tabs.count) * view.frame.width, height: 0)
@@ -206,6 +230,8 @@ class HomePageViewController: UIViewController, UIScrollViewDelegate, Horizontal
     
     func showPage(at index: Int, animated: Bool)
     {
+        currentIndex = index
+        
         let indexPath = IndexPath(row: index, section: 0)
         tabsScrollView.selectItem(at: indexPath, animated: animated, scrollPosition: .centeredHorizontally)
         let offsetX = contentScrollView.bounds.width * CGFloat(index)
